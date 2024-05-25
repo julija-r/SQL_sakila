@@ -1,12 +1,5 @@
 import mysql.connector
-
-hostname = "localhost"
-username = "root"
-password = "Sharabanas1"
-database = "sakila"
-
-
-
+import pandas
 def execute_mysql_query(hostname, port, username, password, database, query, column_names):
     try:
         connection = mysql.connector.connect(
@@ -24,8 +17,9 @@ def execute_mysql_query(hostname, port, username, password, database, query, col
             for col, val in zip(column_names, row):
                 row_data[col] = val
             table_data.append(row_data)
+        df = pandas.DataFrame(table_data, columns=column_names)
 
-        return table_data
+        return df
 
     except mysql.connector.Error as err:
         print(f"Connection error: {err}")
