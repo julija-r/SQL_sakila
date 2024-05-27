@@ -1,6 +1,5 @@
 import sql_functions as sqlf
 import pandas
-import csv
 
 hostname = "localhost"
 username = "root"
@@ -80,47 +79,11 @@ query = ("SELECT "
 
 colNames = ["Store ID", "Payment ID", "Customer ID", "Staff ID", "Rental ID", "Amount"]
 data = sqlf.execute_mysql_query(hostname, port, username, password, database, query, colNames)
-data.to_csv('output.csv', index=False)
+data.to_csv('output.csv', index=False) # save store info in a csv file
+print(pandas.read_csv("output.csv"))
+store_data = sqlf.rental_data("output.csv")
 
 #--turi daugiau customerių
-
-# Read the CSV file into a DataFrame
-df = pandas.read_csv("output.csv")
-
-# Group the data by "Store ID" and count unique customers for each store
-customer_count = df.groupby("Store ID")["Customer ID"].nunique()
-
-max_customers = customer_count.max()
-stores_with_max_customers = customer_count[customer_count == max_customers].index.tolist()
-
-if len(stores_with_max_customers) == 1:
-    print(f"Store {stores_with_max_customers[0]} has the most customers with {max_customers} customers.")
-else:
-    print(f"Multiple stores have the most customers with {max_customers} customers: {', '.join(map(str, stores_with_max_customers))}")
-
-#--išnuomavo daugiau(ir kiek kiekvienas) filmų
-
-#--kiek sugeneravo pajamų
-
-store_data = {}
-distinct_customers = set()
-distinct_rental_ids = set()
-
-with open("output.csv", 'r', encoding='utf-8') as csv_file:
-    read_file = csv.DictReader(csv_file)
-    for row in read_file:
-        store = row["Store ID"]
-        amount = float(row["Amount"])
-        customer = row["Customer ID"]
-        rental_id = row["Rental ID"]
-        distinct_customers.add(customer)
-        distinct_rental_ids.add(rental_id)
-
-        if store not in store_data:
-            store_data[store] = {'customer_count': 0, 'rental_id_count': 0, 'amount_sum': 0.0}
-        store_data[store]['customer_count'] = len(distinct_customers)
-        store_data[store]['rental_id_count'] = len(distinct_rental_ids)
-        store_data[store]['amount_sum'] = round(store_data[store]['amount_sum'] + amount, 2)
 
 max_customers = max(store_data.values(), key=lambda x: x['customer_count'])['customer_count']
 stores_with_most_customers = [store for store, data in store_data.items() if data['customer_count'] == max_customers]
@@ -130,3 +93,21 @@ if len(stores_with_most_customers) > 1:
 else:
     print(f"Store {stores_with_most_customers[0]} has the most customers ({max_customers})")
 
+#--išnuomavo daugiau(ir kiek kiekvienas) filmų
+max_rentals = max(store_data.values(), key=lambda x: x['rental_id_count'])['rental_id_count']
+stores_with_most_rentals = [store for store, data in store_data.items() if data['rental_id_count'] == max_rentals]
+
+if len(stores_with_most_rentals) > 1:
+    print(f"Stores with the most rentals ({max_rentals}): {', '.join(stores_with_most_rentals)}")
+else:
+    print(f"Store {stores_with_most_rentals[0]} has the most rentals ({max_rentals})")
+
+
+#--kiek sugeneravo pajamų
+max_income = max(store_data.values(), key=lambda x: x['amount_sum'])['amount_sum']
+stores_with_income = [store for store, data in store_data.items() if data['amount_sum'] == max_income]
+
+if len(stores_with_most_rentals) > 1:
+    print(f"Stores that generated most income ({max_income}): {', '.join(stores_with_income)}")
+else:
+    print(f"Store {stores_with_income[0]} generated most income ({max_income})")
