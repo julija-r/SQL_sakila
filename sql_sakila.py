@@ -3,7 +3,7 @@ import pandas
 
 hostname = "localhost"
 username = "root"
-password = "Sharabanas1"
+password = "password" #enter real password
 database = "sakila"
 port = 3317
 
